@@ -10,6 +10,75 @@ document.addEventListener("DOMContentLoaded", () => {
   const contactForm = document.getElementById("contactForm");
   const quoteBlock = document.querySelector(".quote-carousel blockquote");
   const statNumbers = document.querySelectorAll(".stat-number");
+  const typewriterText = document.querySelector(".typewriter-text");
+  const siteIntro = document.querySelector(".site-intro");
+  const internalNavigationKey = "familyWebsiteInternalNavigation";
+  const cameFromInternalNavigation = sessionStorage.getItem(internalNavigationKey) === "true";
+  const navigationEntry = performance.getEntriesByType("navigation")[0];
+  const isPageReload = navigationEntry && navigationEntry.type === "reload";
+  sessionStorage.removeItem(internalNavigationKey);
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element) || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+
+    const link = event.target.closest("a[href]");
+    if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+
+    const destination = new URL(link.href, window.location.href);
+    if (
+      destination.protocol === window.location.protocol &&
+      destination.host === window.location.host &&
+      destination.pathname !== window.location.pathname
+    ) {
+      sessionStorage.setItem(internalNavigationKey, "true");
+    }
+  });
+
+  if (typewriterText && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const message = typewriterText.textContent;
+    let characterIndex = 0;
+    typewriterText.textContent = "";
+
+    const typeNextCharacter = () => {
+      characterIndex += 1;
+      typewriterText.textContent = message.slice(0, characterIndex);
+      if (characterIndex < message.length) {
+        window.setTimeout(typeNextCharacter, 75);
+      }
+    };
+
+    window.setTimeout(typeNextCharacter, 350);
+  }
+
+  if (siteIntro) {
+    if (
+      (cameFromInternalNavigation && !isPageReload) ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      siteIntro.remove();
+    } else {
+      const introMessage = siteIntro.querySelector(".site-intro-message");
+      const message = introMessage.textContent;
+      let characterIndex = 0;
+      introMessage.textContent = "";
+
+      const typeIntro = () => {
+        characterIndex += 1;
+        introMessage.textContent = message.slice(0, characterIndex);
+
+        if (characterIndex < message.length) {
+          window.setTimeout(typeIntro, 70);
+        } else {
+          window.setTimeout(() => {
+            siteIntro.classList.add("is-hidden");
+            window.setTimeout(() => siteIntro.remove(), 500);
+          }, 450);
+        }
+      };
+
+      window.setTimeout(typeIntro, 250);
+    }
+  }
 
   const setActiveLink = () => {
     const currentPage = document.body.dataset.page;
